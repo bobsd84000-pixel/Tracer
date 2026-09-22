@@ -1,5 +1,4 @@
 {
-  "rewrites": [
-    { "source": "/api/proxy", "destination": "/api/proxy.js" }
-  ]
+  "buildCommand": "echo 'Static build'",
+  "outputDirectory": "public"
 }
