@@ -1,0 +1,13 @@
+# À remplacer avec le fichier du Drive
+name: Scan API
+on:
+  push:
+    paths:
+      - "api/**"
+      - ".github/workflows/scan-api.yml"
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Scan API placeholder - à remplacer"
