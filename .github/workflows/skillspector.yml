@@ -1,0 +1,56 @@
+name: SkillSpector
+
+on:
+  push:
+    paths:
+      - "skills/**"
+      - "scripts/scan-skills.sh"
+      - ".github/workflows/skillspector.yml"
+  pull_request:
+    paths:
+      - "skills/**"
+      - "scripts/scan-skills.sh"
+      - ".github/workflows/skillspector.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Version figée de SkillSpector (commit NVIDIA/skillspector) pour éviter les surprises.
+  SKILLSPECTOR_REF: 224ba292d91b9e5fc59398fc38ab8971f9ab01ec
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Installer SkillSpector
+        run: uv tool install "git+https://github.com/NVIDIA/skillspector.git@${SKILLSPECTOR_REF}"
+
+      - name: Scanner les skills
+        run: scripts/scan-skills.sh skills skillspector-reports
+
+      - name: Résumé dans la page du job
+        if: always()
+        run: |
+          shopt -s nullglob
+          for f in skillspector-reports/*.md; do
+            cat "$f" >> "$GITHUB_STEP_SUMMARY"
+            echo -e "\n---\n" >> "$GITHUB_STEP_SUMMARY"
+          done
+
+      - name: Garder les rapports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skillspector-reports
+          path: skillspector-reports/
+          if-no-files-found: ignore
