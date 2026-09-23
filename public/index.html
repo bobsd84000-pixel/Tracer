@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Tracer — OSINT Console</title>
+  <style>
+    :root {
+      --signal: #00ff00;
+      --text: #ffffff;
+      --bg-base: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --border: #222222;
+      --error: #ff4444;
+      --success: #00ff00;
+      --warning: #ffaa00;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --text: #000000;
+        --bg-base: #ffffff;
+        --bg-secondary: #f5f5f5;
+        --border: #dddddd;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 0;
+    }
+
+    .header {
+      padding: 1.5rem;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      color: var(--signal);
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 0.85rem;
+      color: #aaaaaa;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+      gap: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--signal);
+      color: var(--signal);
+    }
+
+    .tab-btn:hover {
+      background: var(--border);
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: none;
+    }
+
+    .content.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      border-radius: 6px;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--signal);
+      box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.1);
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      background: var(--signal);
+      color: var(--bg-base);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #00dd00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .result {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .result.error {
+      border-color: var(--error);
+      background: rgba(255, 68, 68, 0.05);
+    }
+
+    .result.success {
+      border-color: var(--success);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-title {
+      font-weight: bold;
+      color: var(--signal);
+      font-size: 0.9rem;
+    }
+
+    .result-status {
+      font-size: 0.75rem;
+      color: #aaaaaa;
+    }
+
+    .result-content {
+      font-size: 0.85rem;
+      color: var(--text);
+      word-break: break-all;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .result-content pre {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .export-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      background: var(--border);
+      color: var(--text);
+      margin-top: 0.5rem;
+    }
+
+    .export-btn:hover {
+      background: #333333;
+    }
+
+    .history-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .history-item:hover {
+      border-color: var(--signal);
+      background: rgba(0, 255, 0, 0.05);
+    }
+
+    .history-item-title {
+      font-weight: bold;
+      color: var(--signal);
+      margin-bottom: 0.25rem;
+    }
+
+    .history-item-date {
+      font-size: 0.75rem;
+      color: #aaaaaa;
+    }
+
+    .history-item-preview {
+      font-size: 0.8rem;
+      color: #cccccc;
+      margin-top: 0.5rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .batch-textarea {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    .batch-textarea:focus {
+      outline: none;
+      border-color: var(--signal);
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .loading {
+      display: inline-block;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .error-text {
+      color: var(--error);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .success-text {
+      color: var(--success);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚡ Tracer</h1>
+      <p>OSINT Console — Domaine | Email | IP</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="console">Console</button>
+      <button class="tab-btn" data-tab="history">Historique</button>
+      <button class="tab-btn" data-tab="batch">Lot</button>
+    </div>
+
+    <div class="content active" id="console">
+      <div class="input-group">
+        <input type="text" id="input" placeholder="example.com | contact@example.com | 1.1.1.1" autocomplete="off">
+        <button id="analyze-btn">Analyser</button>
+      </div>
+      <div id="results"></div>
+    </div>
+
+    <div class="content" id="history">
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+        <button onclick="clearHistory()" style="flex: 1;">Vider l'historique</button>
+        <button id="export-history-btn" style="flex: 1;">Exporter JSON</button>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+    <div class="content" id="batch">
+      <textarea class="batch-textarea" id="batch-input" placeholder="Entrer jusqu'à 25 domaines/emails/IPs (1 par ligne)"></textarea>
+      <div class="controls">
+        <button id="batch-analyze-btn" style="flex: 1;">Analyser le lot (max 2 parallèles)</button>
+        <button id="batch-export-btn" style="flex: 1;">Exporter CSV</button>
+      </div>
+      <div id="batch-results"></div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'tracer-reports';
+    const MAX_HISTORY = 200;
+    const BATCH_MAX = 25;
+
+    function withTimeout(promise, ms) {
+      return Promise.race([
+        promise,
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)),
+      ]);
+    }
+
+    async function analyzeWithFallback(url, sourceType, maxRetries = 1) {
+      const errors = [];
+
+      for (let i = 0; i <= maxRetries; i++) {
+        try {
+          const resp = await withTimeout(fetch(url), 8000);
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data && typeof data === 'object') return data;
+          }
+          errors.push(`Direct ${resp?.status || 'timeout'}`);
+        } catch (e) {
+          errors.push(`Direct: ${e.message.slice(0, 30)}`);
+        }
+      }
+
+      try {
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+        const resp = await withTimeout(fetch(proxyUrl), 20000);
+
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.error) {
+            errors.push(`Proxy: ${data.error}`);
+          } else if (data && typeof data === 'object') {
+            return { ...data, _via: 'proxy' };
+          }
+        } else {
+          errors.push(`Proxy ${resp.status}`);
+        }
+      } catch (e) {
+        errors.push(`Proxy: ${e.message.slice(0, 30)}`);
+      }
+
+      return { error: errors.join(' | '), _errors: errors };
+    }
+
+    function detectType(input) {
+      const trimmed = input.trim();
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+      const emailRegex = /.+@.+\..+/;
+
+      if (ipRegex.test(trimmed)) return { type: 'ip', value: trimmed };
+      if (emailRegex.test(trimmed)) return { type: 'email', value: trimmed.split('@')[1] };
+      return { type: 'domain', value: trimmed };
+    }
+
+    async function analyzeDomain(domain) {
+      const results = {};
+
+      try {
+        const dnsData = await analyzeWithFallback(
+          `https://dns.google/resolve?name=${domain}`,
+          'DNS'
+        );
+        results.dns = dnsData.error ? { error: dnsData.error } : dnsData;
+      } catch (e) {
+        results.dns = { error: e.message };
+      }
+
+      try {
+        const rdapData = await analyzeWithFallback(
+          `https://rdap.org/domain/${domain}`,
+          'RDAP'
+        );
+        results.rdap = rdapData.error ? { error: rdapData.error } : rdapData;
+      } catch (e) {
+        results.rdap = { error: e.message };
+      }
+
+      try {
+        const certsData = await analyzeWithFallback(
+          `https://crt.sh/?q=${domain}&output=json`,
+          'Certs'
+        );
+        results.certs = certsData.error ? { error: certsData.error } : {
+          count: Array.isArray(certsData) ? certsData.length : 0,
+          latest: Array.isArray(certsData) ? certsData[0] : null
+        };
+      } catch (e) {
+        results.certs = { error: e.message };
+      }
+
+      return results;
+    }
+
+    async function analyzeEmail(domain) {
+      const results = {};
+
+      try {
+        const dnsData = await analyzeWithFallback(
+          `https://dns.google/resolve?name=${domain}&type=MX`,
+          'DNS'
+        );
+        results.mx = dnsData.error ? { error: dnsData.error } : dnsData;
+      } catch (e) {
+        results.mx = { error: e.message };
+      }
+
+      try {
+        const nsData = await analyzeWithFallback(
+          `https://dns.google/resolve?name=${domain}&type=NS`,
+          'NS'
+        );
+        results.ns = nsData.error ? { error: nsData.error } : nsData;
+      } catch (e) {
+        results.ns = { error: e.message };
+      }
+
+      return results;
+    }
+
+    async function analyzeIP(ip) {
+      const results = {};
+
+      try {
+        const geoData = await analyzeWithFallback(
+          `https://ipwho.is/?ip=${ip}`,
+          'GeoIP'
+        );
+        results.geo = geoData.error ? { error: geoData.error } : geoData;
+      } catch (e) {
+        results.geo = { error: e.message };
+      }
+
+      try {
+        const octets = ip.split('.').reverse().join('.') + '.in-addr.arpa';
+        const ptrData = await analyzeWithFallback(
+          `https://dns.google/resolve?name=${octets}&type=PTR`,
+          'PTR'
+        );
+        results.ptr = ptrData.error ? { error: ptrData.error } : ptrData;
+      } catch (e) {
+        results.ptr = { error: e.message };
+      }
+
+      return results;
+    }
+
+    function displayResults(input, data) {
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+
+      const report = {
+        query: input,
+        timestamp: new Date().toISOString(),
+        data: data
+      };
+
+      saveToHistory(report);
+
+      Object.entries(data).forEach(([source, result]) => {
+        const div = document.createElement('div');
+        div.className = `result ${result.error ? 'error' : 'success'}`;
+
+        const header = document.createElement('div');
+        header.className = 'result-header';
+        header.innerHTML = `
+          <span class="result-title">${source.toUpperCase()}</span>
+          <span class="result-status">${result.error ? '✗ Erreur' : '✓ OK'}</span>
+        `;
+        div.appendChild(header);
+
+        const content = document.createElement('div');
+        content.className = 'result-content';
+        content.innerHTML = `<pre>${JSON.stringify(result, null, 2).slice(0, 1000)}</pre>`;
+        div.appendChild(content);
+
+        container.appendChild(div);
+      });
+    }
+
+    function saveToHistory(report) {
+      let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      history.unshift(report);
+      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
+
+    function loadHistory() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+
+    function clearHistory() {
+      if (confirm('Vider tout l\'historique?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        document.getElementById('history-list').innerHTML = '';
+      }
+    }
+
+    function displayHistory() {
+      const list = document.getElementById('history-list');
+      const history = loadHistory();
+      list.innerHTML = history.map((report, idx) => `
+        <div class="history-item" onclick="displayHistoryDetail(${idx})">
+          <div class="history-item-title">${report.query}</div>
+          <div class="history-item-date">${new Date(report.timestamp).toLocaleString()}</div>
+          <div class="history-item-preview">${Object.keys(report.data).join(' • ')}</div>
+        </div>
+      `).join('');
+    }
+
+    function displayHistoryDetail(idx) {
+      const history = loadHistory();
+      const report = history[idx];
+      switchTab('console');
+      displayResults(report.query, report.data);
+    }
+
+    async function analyzeBatch() {
+      const input = document.getElementById('batch-input').value;
+      const lines = input.trim().split('\n').filter(l => l).slice(0, BATCH_MAX);
+
+      if (lines.length === 0) return;
+
+      const results = document.getElementById('batch-results');
+      results.innerHTML = '<div class="loading">Analyse en cours...</div>';
+
+      const batchResults = [];
+      for (let i = 0; i < lines.length; i += 2) {
+        const promises = [];
+        for (let j = 0; j < 2 && i + j < lines.length; j++) {
+          const input = lines[i + j];
+          const detected = detectType(input);
+          const analyzeFunc = detected.type === 'domain' ? analyzeDomain :
+                            detected.type === 'email' ? analyzeEmail :
+                            analyzeIP;
+          promises.push(
+            analyzeFunc(detected.value).then(data => ({
+              query: input,
+              data,
+              timestamp: new Date().toISOString()
+            }))
+          );
+        }
+        const resolved = await Promise.all(promises);
+        batchResults.push(...resolved);
+      }
+
+      results.innerHTML = batchResults.map(r => `
+        <div class="result">
+          <div class="result-header">
+            <span class="result-title">${r.query}</span>
+            <span class="result-status">${r.data.error ? '✗' : '✓'}</span>
+          </div>
+          <div class="result-content"><pre>${JSON.stringify(r.data, null, 1).slice(0, 200)}</pre></div>
+        </div>
+      `).join('');
+
+      batchResults.forEach(r => saveToHistory(r));
+    }
+
+    function exportCSV() {
+      const history = loadHistory();
+      const lines = ['Query,Source,Status,Timestamp'];
+      history.forEach(r => {
+        Object.keys(r.data).forEach(source => {
+          lines.push(`"${r.query}","${source}","${r.data[source].error ? 'Error' : 'OK'}","${r.timestamp}"`);
+        });
+      });
+      downloadFile('tracer-export.csv', lines.join('\n'));
+    }
+
+    function exportJSON() {
+      const history = loadHistory();
+      downloadFile('tracer-export.json', JSON.stringify(history, null, 2));
+    }
+
+    function downloadFile(name, content) {
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      document.getElementById(tab).classList.add('active');
+
+      if (tab === 'history') displayHistory();
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    document.getElementById('analyze-btn').addEventListener('click', async () => {
+      const input = document.getElementById('input').value.trim();
+      if (!input) return;
+
+      const btn = document.getElementById('analyze-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading">Analyse...</span>';
+
+      const detected = detectType(input);
+      const analyzeFunc = detected.type === 'domain' ? analyzeDomain :
+                        detected.type === 'email' ? analyzeEmail :
+                        analyzeIP;
+
+      const data = await analyzeFunc(detected.value);
+      displayResults(input, data);
+
+      btn.disabled = false;
+      btn.innerHTML = 'Analyser';
+    });
+
+    document.getElementById('batch-analyze-btn').addEventListener('click', analyzeBatch);
+    document.getElementById('batch-export-btn').addEventListener('click', exportCSV);
+    document.getElementById('export-history-btn').addEventListener('click', exportJSON);
+
+    document.getElementById('input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('analyze-btn').click();
+    });
+
+    document.getElementById('batch-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) document.getElementById('batch-analyze-btn').click();
+    });
+  </script>
+</body>
+</html>
