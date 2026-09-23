@@ -1,0 +1,9 @@
+{
+  "name": "tracer-app",
+  "version": "1.0.0",
+  "description": "SkillSpector SaaS on Vercel",
+  "main": "api/scan.js",
+  "scripts": {
+    "build": "echo OK"
+  }
+}

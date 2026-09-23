@@ -2,218 +2,680 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tracer SaaS - SkillSpector Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Tracer — OSINT Console</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
+    :root {
+      --signal: #00ff00;
+      --text: #ffffff;
+      --bg-base: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --border: #222222;
+      --error: #ff4444;
+      --success: #00ff00;
+      --warning: #ffaa00;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      padding: 40px;
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --text: #000000;
+        --bg-base: #ffffff;
+        --bg-secondary: #f5f5f5;
+        --border: #dddddd;
+      }
     }
-    h1 {
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 2.5em;
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .subtitle {
-      color: #666;
-      margin-bottom: 30px;
-      font-size: 1.1em;
-    }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #333;
-      font-weight: 500;
-    }
-    input, select {
+
+    html, body {
       width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
+      height: 100%;
+      background: var(--bg-base);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 0;
+    }
+
+    .header {
+      padding: 1.5rem;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.5rem;
+      color: var(--signal);
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      font-size: 0.85rem;
+      color: #aaaaaa;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+      gap: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .tab-btn.active {
+      border-bottom-color: var(--signal);
+      color: var(--signal);
+    }
+
+    .tab-btn:hover {
+      background: var(--border);
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: none;
+    }
+
+    .content.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
       border-radius: 6px;
-      font-size: 1em;
     }
-    input:focus, select:focus {
+
+    input[type="text"]:focus {
       outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      border-color: var(--signal);
+      box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.1);
     }
+
     button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 12px 30px;
+      padding: 0.75rem 1.5rem;
+      background: var(--signal);
+      color: var(--bg-base);
       border: none;
       border-radius: 6px;
-      font-size: 1em;
-      font-weight: 600;
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      transition: all 0.2s;
     }
+
     button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+      background: #00dd00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
     }
+
     button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
+
     .result {
-      margin-top: 30px;
-      padding: 20px;
-      background: #f9f9f9;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
       border-radius: 6px;
-      border-left: 4px solid #667eea;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      max-height: 250px;
+      overflow-y: auto;
     }
-    .result.danger {
-      border-left-color: #e74c3c;
+
+    .result.error {
+      border-color: var(--error);
+      background: rgba(255, 68, 68, 0.05);
     }
+
     .result.success {
-      border-left-color: #27ae60;
+      border-color: var(--success);
     }
-    .risk-score {
-      font-size: 2em;
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-title {
       font-weight: bold;
-      margin: 10px 0;
+      color: var(--signal);
+      font-size: 0.9rem;
     }
-    .risk-score.high { color: #e74c3c; }
-    .risk-score.medium { color: #f39c12; }
-    .risk-score.low { color: #27ae60; }
-    .findings {
-      margin-top: 20px;
+
+    .result-status {
+      font-size: 0.75rem;
+      color: #aaaaaa;
     }
-    .finding {
-      padding: 10px;
-      margin: 10px 0;
-      background: white;
-      border-left: 3px solid #e74c3c;
-      border-radius: 3px;
+
+    .result-content {
+      font-size: 0.85rem;
+      color: var(--text);
+      word-break: break-all;
+      max-height: 180px;
+      overflow-y: auto;
     }
-    .finding-title {
-      font-weight: 600;
-      color: #333;
+
+    .result-content pre {
+      margin: 0;
+      white-space: pre-wrap;
     }
-    .finding-desc {
-      color: #666;
-      font-size: 0.9em;
-      margin-top: 5px;
+
+    .export-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      background: var(--border);
+      color: var(--text);
+      margin-top: 0.5rem;
     }
+
+    .export-btn:hover {
+      background: #333333;
+    }
+
+    .history-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .history-item:hover {
+      border-color: var(--signal);
+      background: rgba(0, 255, 0, 0.05);
+    }
+
+    .history-item-title {
+      font-weight: bold;
+      color: var(--signal);
+      margin-bottom: 0.25rem;
+    }
+
+    .history-item-date {
+      font-size: 0.75rem;
+      color: #aaaaaa;
+    }
+
+    .history-item-preview {
+      font-size: 0.8rem;
+      color: #cccccc;
+      margin-top: 0.5rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .batch-textarea {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    .batch-textarea:focus {
+      outline: none;
+      border-color: var(--signal);
+    }
+
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
     .loading {
-      text-align: center;
-      padding: 20px;
+      display: inline-block;
+      animation: pulse 1s infinite;
     }
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #667eea;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+
+    .error-text {
+      color: var(--error);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    .success-text {
+      color: var(--success);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🛡️ Tracer</h1>
-    <p class="subtitle">Scanner de sécurité pour les skills d'agents IA</p>
+    <div class="header">
+      <h1>⚡ Tracer</h1>
+      <p>OSINT Console — Domaine | Email | IP</p>
+    </div>
 
-    <form id="scanForm">
-      <div class="form-group">
-        <label for="skillPath">URL du skill (GitHub, zip, dossier)</label>
-        <input type="text" id="skillPath" placeholder="https://github.com/user/skill ou ./local/skill" required>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="console">Console</button>
+      <button class="tab-btn" data-tab="history">Historique</button>
+      <button class="tab-btn" data-tab="batch">Lot</button>
+    </div>
+
+    <div class="content active" id="console">
+      <div class="input-group">
+        <input type="text" id="input" placeholder="example.com | contact@example.com | 1.1.1.1" autocomplete="off">
+        <button id="analyze-btn">Analyser</button>
       </div>
+      <div id="results"></div>
+    </div>
 
-      <div class="form-group">
-        <label for="format">Format du rapport</label>
-        <select id="format">
-          <option value="json">JSON (structuré)</option>
-          <option value="markdown">Markdown (texte)</option>
-          <option value="terminal">Terminal (lisible)</option>
-        </select>
+    <div class="content" id="history">
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+        <button onclick="clearHistory()" style="flex: 1;">Vider l'historique</button>
+        <button id="export-history-btn" style="flex: 1;">Exporter JSON</button>
       </div>
+      <div id="history-list"></div>
+    </div>
 
-      <button type="submit" id="scanBtn">Scanner le skill</button>
-    </form>
-
-    <div id="result"></div>
+    <div class="content" id="batch">
+      <textarea class="batch-textarea" id="batch-input" placeholder="Entrer jusqu'à 25 domaines/emails/IPs (1 par ligne)"></textarea>
+      <div class="controls">
+        <button id="batch-analyze-btn" style="flex: 1;">Analyser le lot (max 2 parallèles)</button>
+        <button id="batch-export-btn" style="flex: 1;">Exporter CSV</button>
+      </div>
+      <div id="batch-results"></div>
+    </div>
   </div>
 
   <script>
-    const form = document.getElementById('scanForm');
-    const resultDiv = document.getElementById('result');
-    const scanBtn = document.getElementById('scanBtn');
+    const STORAGE_KEY = 'tracer-reports';
+    const MAX_HISTORY = 200;
+    const BATCH_MAX = 25;
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const skillPath = document.getElementById('skillPath').value;
-      const format = document.getElementById('format').value;
+    function withTimeout(promise, ms) {
+      return Promise.race([
+        promise,
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)),
+      ]);
+    }
 
-      scanBtn.disabled = true;
-      resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Scan en cours...</p></div>';
+    async function analyzeWithFallback(url, sourceType, maxRetries = 1) {
+      const errors = [];
+
+      for (let i = 0; i <= maxRetries; i++) {
+        try {
+          const resp = await withTimeout(fetch(url), 8000);
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data && typeof data === 'object') return data;
+          }
+          errors.push(`Direct ${resp?.status || 'timeout'}`);
+        } catch (e) {
+          errors.push(`Direct: ${e.message.slice(0, 30)}`);
+        }
+      }
 
       try {
-        const response = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ skillPath, format })
-        });
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+        const resp = await withTimeout(fetch(proxyUrl), 20000);
 
-        const data = await response.json();
-
-        if (data.success) {
-          const report = data.report;
-          const riskLevel = report.risk_assessment?.severity?.toLowerCase() || 'unknown';
-          const riskScore = report.risk_assessment?.score || 0;
-
-          let html = `<div class="result ${riskScore > 50 ? 'danger' : 'success'}">`;
-          html += `<h2>${data.riskDetected ? '⚠️ Risque détecté' : '✅ Skill sûr'}</h2>`;
-          html += `<div class="risk-score ${riskScore > 70 ? 'high' : riskScore > 40 ? 'medium' : 'low'}">Score: ${riskScore}/100</div>`;
-
-          if (report.issues && report.issues.length > 0) {
-            html += '<div class="findings"><h3>Vulnérabilités trouvées:</h3>';
-            report.issues.slice(0, 10).forEach(issue => {
-              html += `<div class="finding">
-                <div class="finding-title">${issue.category} (${issue.severity})</div>
-                <div class="finding-desc">${issue.id}</div>
-              </div>`;
-            });
-            if (report.issues.length > 10) {
-              html += `<p style="color: #666; margin-top: 10px;">... et ${report.issues.length - 10} autres</p>`;
-            }
-            html += '</div>';
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.error) {
+            errors.push(`Proxy: ${data.error}`);
+          } else if (data && typeof data === 'object') {
+            return { ...data, _via: 'proxy' };
           }
-
-          html += `<p style="color: #666; margin-top: 20px; font-size: 0.9em;">
-            Recommendation: <strong>${report.risk_assessment?.recommendation || 'UNKNOWN'}</strong>
-          </p>`;
-          html += '</div>';
-
-          resultDiv.innerHTML = html;
         } else {
-          resultDiv.innerHTML = `<div class="result danger"><h2>❌ Erreur</h2><p>${data.error}</p></div>`;
+          errors.push(`Proxy ${resp.status}`);
         }
-      } catch (err) {
-        resultDiv.innerHTML = `<div class="result danger"><h2>❌ Erreur</h2><p>${err.message}</p></div>`;
-      } finally {
-        scanBtn.disabled = false;
+      } catch (e) {
+        errors.push(`Proxy: ${e.message.slice(0, 30)}`);
       }
+
+      return { error: errors.join(' | '), _errors: errors };
+    }
+
+    function detectType(input) {
+      const trimmed = input.trim();
+      const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+      const emailRegex = /.+@.+\..+/;
+
+      if (ipRegex.test(trimmed)) return { type: 'ip', value: trimmed };
+      if (emailRegex.test(trimmed)) return { type: 'email', value: trimmed.split('@')[1] };
+      return { type: 'domain', value: trimmed };
+    }
+
+    async function analyzeDomain(domain) {
+      const results = {};
+
+      try {
+        const dnsData = await analyzeWithFallback(
+          `https://dns.google/resolve?name=${domain}`,
+          'DNS'
+        );
+        results.dns = dnsData.error ? { error: dnsData.error } : dnsData;
+      } catch (e) {
+        results.dns = { error: e.message };
+      }
+
+      try {
+        const rdapData = await analyzeWithFallback(
+          `https://rdap.org/domain/${domain}`,
+          'RDAP'
+        );
+        results.rdap = rdapData.error ? { error: rdapData.error } : rdapData;
+      } catch (e) {
+        results.rdap = { error: e.message };
+      }
+
+      try {
+        const certsData = await analyzeWithFallback(
+          `https://crt.sh/?q=${domain}&output=json`,
+          'Certs'
+        );
+        results.certs = certsData.error ? { error: certsData.error } : {
+          count: Array.isArray(certsData) ? certsData.length : 0,
+          latest: Array.isArray(certsData) ? certsData[0] : null
+        };
+      } catch (e) {
+        results.certs = { error: e.message };
+      }
+
+      return results;
+    }
+
+    async function analyzeEmail(domain) {
+      const results = {};
+
+      try {
+        const dnsData = await analyzeWithFallback(
+          `https://dns.google/resolve?name=${domain}&type=MX`,
+          'DNS'
+        );
+        results.mx = dnsData.error ? { error: dnsData.error } : dnsData;
+      } catch (e) {
+        results.mx = { error: e.message };
+      }
+
+      try {
+        const nsData = await analyzeWithFallback(
+          `https://dns.google/resolve?name=${domain}&type=NS`,
+          'NS'
+        );
+        results.ns = nsData.error ? { error: nsData.error } : nsData;
+      } catch (e) {
+        results.ns = { error: e.message };
+      }
+
+      return results;
+    }
+
+    async function analyzeIP(ip) {
+      const results = {};
+
+      try {
+        const geoData = await analyzeWithFallback(
+          `https://ipwho.is/?ip=${ip}`,
+          'GeoIP'
+        );
+        results.geo = geoData.error ? { error: geoData.error } : geoData;
+      } catch (e) {
+        results.geo = { error: e.message };
+      }
+
+      try {
+        const octets = ip.split('.').reverse().join('.') + '.in-addr.arpa';
+        const ptrData = await analyzeWithFallback(
+          `https://dns.google/resolve?name=${octets}&type=PTR`,
+          'PTR'
+        );
+        results.ptr = ptrData.error ? { error: ptrData.error } : ptrData;
+      } catch (e) {
+        results.ptr = { error: e.message };
+      }
+
+      return results;
+    }
+
+    function displayResults(input, data) {
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+
+      const report = {
+        query: input,
+        timestamp: new Date().toISOString(),
+        data: data
+      };
+
+      saveToHistory(report);
+
+      Object.entries(data).forEach(([source, result]) => {
+        const div = document.createElement('div');
+        div.className = `result ${result.error ? 'error' : 'success'}`;
+
+        const header = document.createElement('div');
+        header.className = 'result-header';
+        header.innerHTML = `
+          <span class="result-title">${source.toUpperCase()}</span>
+          <span class="result-status">${result.error ? '✗ Erreur' : '✓ OK'}</span>
+        `;
+        div.appendChild(header);
+
+        const content = document.createElement('div');
+        content.className = 'result-content';
+        content.innerHTML = `<pre>${JSON.stringify(result, null, 2).slice(0, 1000)}</pre>`;
+        div.appendChild(content);
+
+        container.appendChild(div);
+      });
+    }
+
+    function saveToHistory(report) {
+      let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      history.unshift(report);
+      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
+
+    function loadHistory() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+
+    function clearHistory() {
+      if (confirm('Vider tout l\'historique?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        document.getElementById('history-list').innerHTML = '';
+      }
+    }
+
+    function displayHistory() {
+      const list = document.getElementById('history-list');
+      const history = loadHistory();
+      list.innerHTML = history.map((report, idx) => `
+        <div class="history-item" onclick="displayHistoryDetail(${idx})">
+          <div class="history-item-title">${report.query}</div>
+          <div class="history-item-date">${new Date(report.timestamp).toLocaleString()}</div>
+          <div class="history-item-preview">${Object.keys(report.data).join(' • ')}</div>
+        </div>
+      `).join('');
+    }
+
+    function displayHistoryDetail(idx) {
+      const history = loadHistory();
+      const report = history[idx];
+      switchTab('console');
+      displayResults(report.query, report.data);
+    }
+
+    async function analyzeBatch() {
+      const input = document.getElementById('batch-input').value;
+      const lines = input.trim().split('\n').filter(l => l).slice(0, BATCH_MAX);
+
+      if (lines.length === 0) return;
+
+      const results = document.getElementById('batch-results');
+      results.innerHTML = '<div class="loading">Analyse en cours...</div>';
+
+      const batchResults = [];
+      for (let i = 0; i < lines.length; i += 2) {
+        const promises = [];
+        for (let j = 0; j < 2 && i + j < lines.length; j++) {
+          const input = lines[i + j];
+          const detected = detectType(input);
+          const analyzeFunc = detected.type === 'domain' ? analyzeDomain :
+                            detected.type === 'email' ? analyzeEmail :
+                            analyzeIP;
+          promises.push(
+            analyzeFunc(detected.value).then(data => ({
+              query: input,
+              data,
+              timestamp: new Date().toISOString()
+            }))
+          );
+        }
+        const resolved = await Promise.all(promises);
+        batchResults.push(...resolved);
+      }
+
+      results.innerHTML = batchResults.map(r => `
+        <div class="result">
+          <div class="result-header">
+            <span class="result-title">${r.query}</span>
+            <span class="result-status">${r.data.error ? '✗' : '✓'}</span>
+          </div>
+          <div class="result-content"><pre>${JSON.stringify(r.data, null, 1).slice(0, 200)}</pre></div>
+        </div>
+      `).join('');
+
+      batchResults.forEach(r => saveToHistory(r));
+    }
+
+    function exportCSV() {
+      const history = loadHistory();
+      const lines = ['Query,Source,Status,Timestamp'];
+      history.forEach(r => {
+        Object.keys(r.data).forEach(source => {
+          lines.push(`"${r.query}","${source}","${r.data[source].error ? 'Error' : 'OK'}","${r.timestamp}"`);
+        });
+      });
+      downloadFile('tracer-export.csv', lines.join('\n'));
+    }
+
+    function exportJSON() {
+      const history = loadHistory();
+      downloadFile('tracer-export.json', JSON.stringify(history, null, 2));
+    }
+
+    function downloadFile(name, content) {
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      document.getElementById(tab).classList.add('active');
+
+      if (tab === 'history') displayHistory();
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    document.getElementById('analyze-btn').addEventListener('click', async () => {
+      const input = document.getElementById('input').value.trim();
+      if (!input) return;
+
+      const btn = document.getElementById('analyze-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading">Analyse...</span>';
+
+      const detected = detectType(input);
+      const analyzeFunc = detected.type === 'domain' ? analyzeDomain :
+                        detected.type === 'email' ? analyzeEmail :
+                        analyzeIP;
+
+      const data = await analyzeFunc(detected.value);
+      displayResults(input, data);
+
+      btn.disabled = false;
+      btn.innerHTML = 'Analyser';
+    });
+
+    document.getElementById('batch-analyze-btn').addEventListener('click', analyzeBatch);
+    document.getElementById('batch-export-btn').addEventListener('click', exportCSV);
+    document.getElementById('export-history-btn').addEventListener('click', exportJSON);
+
+    document.getElementById('input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('analyze-btn').click();
+    });
+
+    document.getElementById('batch-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) document.getElementById('batch-analyze-btn').click();
     });
   </script>
 </body>

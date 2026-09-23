@@ -1,0 +1,77 @@
+name: Scan API
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Lien GitHub du repo á scanner
+        required: true
+        type: string
+      id:
+        description: Identifiant du scan (12 caractères)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+# Un scan à la fois : åvite les conflits d'écriture sur la branche results
+concurrency:
+  group: scan-results
+  cancel-in-progress: false
+
+env:
+  SKILLSPECTOR_REF: 224ba292d91b9e5fc59398fc38ab8971f9ab01ec
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Valider les entrées
+        env:
+          URL: ${{ inputs.url }}
+          ID: ${{ inputs.id }}
+        run: |
+          [[ "$URL" =~ ^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || { echo "URL refusée"; exit 1; }
+          [[ "$ID" =~ ^[a-f0-9]{12}$ ]] || { echo "ID refusé"; exit 1; }
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Installer SkillSpector
+        run: uv tool install "git+https://github.com/NVIDIA/skillspector.git@${SKILLSPECTOR_REF}"
+
+      - name: Scanner
+        env:
+          URL: ${{ inputs.url }}
+        run: |
+          mkdir -p /tmp/out
+          if git clone --depth=1 "$URL" /tmp/cible; then
+            python3 scripts/scan_api.py /tmp/cible /tmp/out/res.json
+          else
+            printf '{"statut":"erreur","url":"%s","message":"Repo introuvable ou privé"}' "$URL" > /tmp/out/res.json
+          fi
+
+      - name: Publier le résultat
+        env:
+          ID: ${{ inputs.id }}
+        run: |
+          git config user.name "tracer-bot"
+          git config user.email "tracer-bot@users.noreply.github.com"
+          if git fetch --depth=1 origin results; then
+            git checkout -B results FETCH_HEAD
+          else
+            git checkout --orphan results
+            git rm -rf --quiet .
+          fi
+          mkdir -p results
+          cp /tmp/out/res.json "results/$ID.json"
+          git add "results/$ID.json"
+          git commit -m "scan $ID"
+          git push origin results
