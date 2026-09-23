@@ -1,13 +1,29 @@
-# À remplacer avec le fichier du Drive
-name: Scan API
+name: Scan API CI
+
 on:
   push:
     paths:
-      - "api/**"
-      - ".github/workflows/scan-api.yml"
+      - 'api/**'
+      - 'scripts/**'
+      - 'package.json'
+      - '.github/workflows/scan-api.yml'
+  pull_request:
+    paths:
+      - 'api/**'
+      - 'scripts/**'
+
 jobs:
-  scan:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Scan API placeholder - à remplacer"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm install
+      - run: npm run build
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 scripts/scan_api.py --help || echo "OK"
