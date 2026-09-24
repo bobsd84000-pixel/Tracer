@@ -5,12 +5,15 @@ on:
     paths:
       - 'api/**'
       - 'scripts/**'
+      - 'server.js'
       - 'package.json'
       - '.github/workflows/scan-api.yml'
   pull_request:
     paths:
       - 'api/**'
       - 'scripts/**'
+      - 'server.js'
+      - 'package.json'
 
 jobs:
   test:
@@ -26,4 +29,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python3 scripts/scan_api.py --help || echo "OK"
+      - name: Vérifier la syntaxe
+        run: |
+          for f in api/*.js server.js; do node --check "$f"; done
+          python3 -m py_compile scripts/scan_api.py
+          for f in scripts/*.sh; do bash -n "$f"; done
+      - name: Tester les refus de l'API
+        run: node scripts/test-api.js

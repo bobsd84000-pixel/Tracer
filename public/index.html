@@ -178,7 +178,11 @@
 
         const data = await response.json();
 
-        if (data.success) {
+        if (data.success && typeof data.report === 'string') {
+          resultDiv.innerHTML = `<div class="result ${data.riskDetected ? 'danger' : 'success'}">
+            <h2>${data.riskDetected ? '⚠️ Risque détecté' : '✅ Skill sûr'}</h2>
+            <pre style="white-space: pre-wrap; margin-top: 15px;">${esc(data.report)}</pre></div>`;
+        } else if (data.success) {
           const report = data.report;
           const riskLevel = report.risk_assessment?.severity?.toLowerCase() || 'unknown';
           const riskScore = report.risk_assessment?.score || 0;

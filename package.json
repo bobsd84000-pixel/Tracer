@@ -4,8 +4,9 @@
   "description": "SkillSpector SaaS - Scan AI agent skills for security vulnerabilities",
   "scripts": {
     "build": "echo OK",
-    "start": "node api/scan.js",
-    "dev": "node api/scan.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node scripts/test-api.js"
   },
   "keywords": ["skillspector", "security", "ai", "skills"],
   "author": "Tracer",
