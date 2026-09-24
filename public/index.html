@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracer SaaS - SkillSpector Scanner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border-left: 4px solid #667eea;
+    }
+    .result.danger {
+      border-left-color: #e74c3c;
+    }
+    .result.success {
+      border-left-color: #27ae60;
+    }
+    .risk-score {
+      font-size: 2em;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .risk-score.high { color: #e74c3c; }
+    .risk-score.medium { color: #f39c12; }
+    .risk-score.low { color: #27ae60; }
+    .findings {
+      margin-top: 20px;
+    }
+    .finding {
+      padding: 10px;
+      margin: 10px 0;
+      background: white;
+      border-left: 3px solid #e74c3c;
+      border-radius: 3px;
+    }
+    .finding-title {
+      font-weight: 600;
+      color: #333;
+    }
+    .finding-desc {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛡️ Tracer</h1>
+    <p class="subtitle">Scanner de sécurité pour les skills d'agents IA</p>
+
+    <form id="scanForm">
+      <div class="form-group">
+        <label for="skillPath">URL du skill (GitHub, zip, dossier)</label>
+        <input type="text" id="skillPath" placeholder="https://github.com/user/skill ou ./local/skill" required>
+      </div>
+
+      <div class="form-group">
+        <label for="format">Format du rapport</label>
+        <select id="format">
+          <option value="json">JSON (structuré)</option>
+          <option value="markdown">Markdown (texte)</option>
+          <option value="terminal">Terminal (lisible)</option>
+        </select>
+      </div>
+
+      <button type="submit" id="scanBtn">Scanner le skill</button>
+    </form>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('scanForm');
+    const resultDiv = document.getElementById('result');
+    const scanBtn = document.getElementById('scanBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const skillPath = document.getElementById('skillPath').value;
+      const format = document.getElementById('format').value;
+
+      scanBtn.disabled = true;
+      resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Scan en cours...</p></div>';
+
+      try {
+        const response = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ skillPath, format })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const report = data.report;
+          const riskLevel = report.risk_assessment?.severity?.toLowerCase() || 'unknown';
+          const riskScore = report.risk_assessment?.score || 0;
+
+          let html = `<div class="result ${riskScore > 50 ? 'danger' : 'success'}">`;
+          html += `<h2>${data.riskDetected ? '⚠️ Risque détecté' : '✅ Skill sûr'}</h2>`;
+          html += `<div class="risk-score ${riskScore > 70 ? 'high' : riskScore > 40 ? 'medium' : 'low'}">Score: ${riskScore}/100</div>`;
+
+          if (report.issues && report.issues.length > 0) {
+            html += '<div class="findings"><h3>Vulnérabilités trouvées:</h3>';
+            report.issues.slice(0, 10).forEach(issue => {
+              html += `<div class="finding">
+                <div class="finding-title">${issue.category} (${issue.severity})</div>
+                <div class="finding-desc">${issue.id}</div>
+              </div>`;
+            });
+            if (report.issues.length > 10) {
+              html += `<p style="color: #666; margin-top: 10px;">... et ${report.issues.length - 10} autres</p>`;
+            }
+            html += '</div>';
+          }
+
+          html += `<p style="color: #666; margin-top: 20px; font-size: 0.9em;">
+            Recommendation: <strong>${report.risk_assessment?.recommendation || 'UNKNOWN'}</strong>
+          </p>`;
+          html += '</div>';
+
+          resultDiv.innerHTML = html;
+        } else {
+          resultDiv.innerHTML = `<div class="result danger"><h2>❌ Erreur</h2><p>${data.error}</p></div>`;
+        }
+      } catch (err) {
+        resultDiv.innerHTML = `<div class="result danger"><h2>❌ Erreur</h2><p>${err.message}</p></div>`;
+      } finally {
+        scanBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
