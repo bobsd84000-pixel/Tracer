@@ -1,9 +1,6 @@
 {
-  "buildCommand": "echo OK",
-  "outputDirectory": "public",
-  "env": ["GH_TOKEN"],
-  "routes": [
-    {"src": "/api/(.*)", "dest": "/api/$1", "methods": ["GET", "POST"]},
-    {"src": "/(.*)", "dest": "/public/index.html", "status": 200}
-  ]
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "nodeVersion": "20.x"
 }

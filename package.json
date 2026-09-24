@@ -1,13 +1,15 @@
 {
   "name": "tracer-saas",
   "version": "1.0.0",
-  "description": "SkillSpector SaaS - Scan AI agent skills for security vulnerabilities",
+  "description": "Tracer SaaS - Security Scanner for AI Agent Skills",
   "scripts": {
-    "build": "echo OK",
-    "start": "node api/scan.js",
-    "dev": "node api/scan.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
-  "keywords": ["skillspector", "security", "ai", "skills"],
-  "author": "Tracer",
-  "license": "Apache-2.0"
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
 }
