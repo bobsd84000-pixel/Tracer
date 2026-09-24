@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tracer — 4 Landings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Geist:wght@400;500;600&family=IBM+Plex+Sans:wght@400;600&family=Archivo+Black&family=JetBrains+Mono:wght@400;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Geist+Mono:wght@400;500&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      font-family: system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #f5f5f5;
+    }
+
+    /* ===== META TABS (4 landings switch) ===== */
+    .meta-nav {
+      display: flex;
+      gap: 0;
+      padding: 8px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #222;
+      flex-shrink: 0;
+    }
+
+    .meta-btn {
+      flex: 1;
+      padding: 8px 12px;
+      background: transparent;
+      border: 1px solid #333;
+      color: #999;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+
+    .meta-btn:hover {
+      border-color: #555;
+      color: #ccc;
+    }
+
+    .meta-btn.active {
+      background: #00ff00;
+      color: #000;
+      border-color: #00ff00;
+    }
+
+    .meta-btn.active2 {
+      background: #4ade80;
+      color: #000;
+      border-color: #4ade80;
+    }
+
+    .meta-btn.active3 {
+      background: #222;
+      color: #fff;
+      border-color: #555;
+    }
+
+    .meta-btn.active4 {
+      background: #f5f5f5;
+      color: #000;
+      border-color: #f5f5f5;
+    }
+
+    .content {
+      flex: 1;
+      display: none;
+      overflow: auto;
+      position: relative;
+    }
+
+    .content.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== V1: claude-mastery /design (Retro-Futuristic Green) ===== */
+    #v1 {
+      background: #0a0a0a;
+      color: #00ff00;
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    #v1 header {
+      padding: 16px;
+      border-bottom: 2px solid #00ff00;
+      background: #0a0a0a;
+    }
+
+    #v1 .mark {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #00ff00;
+      text-shadow: 0 0 8px #00ff00;
+    }
+
+    #v1 input, #v1 textarea {
+      background: #0a0a0a;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      font-family: "IBM Plex Mono", monospace;
+      padding: 8px 12px;
+      min-height: 44px;
+      font-size: 14px;
+      caret-color: #00ff00;
+    }
+
+    #v1 button {
+      background: transparent;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      padding: 8px 16px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.1s;
+      text-transform: uppercase;
+      min-height: 44px;
+    }
+
+    #v1 button:hover {
+      background: #00ff00;
+      color: #0a0a0a;
+      box-shadow: 0 0 16px #00ff00;
+    }
+
+    #v1 .panel {
+      border: 1px solid #00ff00;
+      background: #0a0a0a;
+      border-radius: 0;
+    }
+
+    #v1 .panel-header {
+      border-bottom: 1px solid #00ff00;
+      background: #0a0a0a;
+      color: #00ff00;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+
+    #v1 .panel-body {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: #00ff00;
+      padding: 12px;
+      line-height: 1.4;
+    }
+
+    /* ===== V2: taste-skill + Warp (Tech Dark) ===== */
+    #v2 {
+      background: #2b2622;
+      color: #f5f5f5;
+      font-family: "Geist", system-ui, sans-serif;
+    }
+
+    #v2 header {
+      padding: 16px;
+      border-bottom: 1px solid #3f3a36;
+      background: #1a1714;
+    }
+
+    #v2 .mark {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #f5f5f5;
+    }
+
+    #v2 input, #v2 textarea {
+      background: #1a1714;
+      border: 1px solid #3f3a36;
+      color: #f5f5f5;
+      font-family: "DM Mono", monospace;
+      padding: 12px 16px;
+      min-height: 44px;
+      font-size: 16px;
+      border-radius: 3px;
+    }
+
+    #v2 input:focus, #v2 textarea:focus {
+      outline: none;
+      border-color: #4ade80;
+      box-shadow: 0 0 0 2px #2b2622, 0 0 0 4px #4ade80;
+    }
+
+    #v2 button {
+      background: transparent;
+      border: 1px solid #3f3a36;
+      color: #f5f5f5;
+      padding: 12px 16px;
+      font-family: "DM Mono", monospace;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      min-height: 44px;
+    }
+
+    #v2 button:hover {
+      border-color: #4ade80;
+      color: #4ade80;
+    }
+
+    #v2 button:active {
+      background: #4ade80;
+      color: #2b2622;
+    }
+
+    #v2 .panel {
+      border: 1px solid #3f3a36;
+      background: #1a1714;
+      border-radius: 3px;
+    }
+
+    #v2 .panel-header {
+      border-bottom: 1px solid #3f3a36;
+      background: #2b2622;
+      color: #f5f5f5;
+      font-family: "Geist", sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 12px 16px;
+    }
+
+    #v2 .panel-body {
+      font-family: "DM Mono", monospace;
+      font-size: 11px;
+      color: #f5f5f5;
+      padding: 16px;
+      line-height: 1.6;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* ===== SHARED LAYOUT ===== */
+    .main-wrap {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      padding: 16px;
+    }
+
+    .input-group input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .results {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      padding: 0 16px 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-body {
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+
+    .skills-footer {
+      font-size: 10px;
+      padding: 12px 16px;
+      border-top: 1px solid;
+      margin-top: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .skill {
+      display: inline-block;
+      padding: 2px 6px;
+      border: 1px solid;
+      border-radius: 2px;
+      font-weight: 500;
+    }
+
+    .skill.on {
+      font-weight: 700;
+    }
+
+    /* V1 skills footer */
+    #v1 .skills-footer {
+      border-color: #00ff00;
+      color: #00ff00;
+    }
+
+    #v1 .skill {
+      border-color: #00ff00;
+    }
+
+    #v1 .skill.on {
+      background: #00ff00;
+      color: #0a0a0a;
+    }
+
+    /* V2 skills footer */
+    #v2 .skills-footer {
+      border-color: #3f3a36;
+      color: #9ca3af;
+    }
+
+    #v2 .skill {
+      border-color: #3f3a36;
+      background: #1a1714;
+    }
+
+    #v2 .skill.on {
+      border-color: #4ade80;
+      background: #2b2622;
+      color: #4ade80;
+    }
+
+    @media (max-width: 640px) {
+      .results {
+        grid-template-columns: 1fr;
+      }
+
+      .meta-nav {
+        padding: 4px;
+      }
+
+      .meta-btn {
+        padding: 6px 8px;
+        font-size: 9px;
+      }
+    }
+
+    /* ===== V3 : brutalist-skill — archétype Tactical Telemetry (sombre) ===== */
+    #v3{background:#0A0A0A;color:#EAEAEA;font-family:"JetBrains Mono",monospace;position:relative}
+    #v3::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.025) 2px,rgba(255,255,255,.025) 4px)}
+    #v3::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.06;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
+    .b-micro{font-size:11px;letter-spacing:.08em;text-transform:uppercase;line-height:1.3}
+    .b-top{display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #EAEAEA}
+    .b-top .red{color:#E61919}
+    .b-hero{padding:24px 14px 18px;border-bottom:2px solid #E61919}
+    .b-hero h1{font-family:"Archivo Black",sans-serif;font-size:clamp(3.2rem,17vw,9rem);line-height:.88;letter-spacing:-.05em;text-transform:uppercase}
+    .b-hero h1 s{text-decoration-color:#E61919;text-decoration-thickness:6px}
+    .b-hero p{margin-top:12px;color:#9a9a9a}
+    .b-form{display:grid;grid-template-columns:1fr auto;border-bottom:1px solid #EAEAEA}
+    .b-form input{background:#0A0A0A;border:0;border-right:1px solid #EAEAEA;color:#EAEAEA;
+      font:16px "JetBrains Mono",monospace;letter-spacing:.05em;text-transform:uppercase;padding:0 14px;min-height:52px;border-radius:0;min-width:0}
+    .b-form input:focus{outline:2px solid #E61919;outline-offset:-2px}
+    .b-form button{background:#E61919;color:#0A0A0A;border:0;border-radius:0;padding:0 18px;min-height:52px;
+      font:700 12px "JetBrains Mono",monospace;letter-spacing:.1em;cursor:pointer}
+    .b-form button:active{background:#EAEAEA}
+    .b-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:#EAEAEA;border-bottom:1px solid #EAEAEA}
+    .b-cell{background:#0A0A0A;padding:12px 14px;position:relative}
+    .b-cell::after{content:"+";position:absolute;right:6px;top:2px;color:#555}
+    .b-cell h2{font-size:11px;letter-spacing:.1em;margin-bottom:10px;color:#E61919}
+    .b-cell dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+    .b-cell dt{color:#777}.b-cell dd{margin:0;word-break:break-all}
+    .b-live{color:#4AF626}
+    .b-bar{height:14px;margin:0 14px;background:repeating-linear-gradient(90deg,#EAEAEA 0 2px,transparent 2px 5px,#EAEAEA 5px 6px,transparent 6px 9px)}
+    #v3 .skills-footer{border-color:#EAEAEA;color:#EAEAEA;font-family:"JetBrains Mono",monospace;text-transform:uppercase;letter-spacing:.06em}
+    #v3 .skill{border-color:#444;border-radius:0}
+    #v3 .skill.on{background:#EAEAEA;color:#0A0A0A;border-color:#EAEAEA}
+
+    /* ===== V4 : minimalist-skill — éditorial monochrome chaud ===== */
+    #v4{background:#F7F6F3;color:#2F3437;font-family:"Geist",sans-serif;position:relative;overflow-x:hidden}
+    #v4 .main-wrap{overflow-x:hidden}
+    .m-glow{position:absolute;top:-120px;left:50%;width:min(520px,100%);height:520px;transform:translateX(-50%);pointer-events:none;
+      background:radial-gradient(circle,rgba(214,180,140,.18),transparent 65%);animation:mdrift 24s ease-in-out infinite alternate}
+    @keyframes mdrift{to{transform:translateX(-40%) translateY(30px)}}
+    .m-wrap{max-width:56rem;margin:0 auto;padding:40px 18px 32px;position:relative;width:100%}
+    .m-meta{font:12px "Geist Mono",monospace;color:#787774;margin-bottom:18px}
+    .m-wrap h1{font-family:"Newsreader",serif;font-weight:400;font-size:clamp(2.4rem,9vw,4rem);line-height:1.1;letter-spacing:-.03em;color:#111}
+    .m-lead{margin-top:14px;font-size:16px;line-height:1.6;color:#787774;max-width:34rem}
+    .m-win{margin-top:32px;background:#fff;border:1px solid #EAEAEA;border-radius:12px;overflow:hidden}
+    .m-chrome{display:flex;gap:6px;padding:12px 14px;border-bottom:1px solid #EAEAEA}
+    .m-chrome i{width:10px;height:10px;border-radius:50%;background:#E3E2DE}
+    .m-form{display:flex;gap:8px;padding:18px;flex-wrap:wrap}
+    .m-form input{flex:1;min-width:0;border:1px solid #EAEAEA;border-radius:6px;background:#FBFBFA;
+      font:16px "Geist Mono",monospace;color:#111;padding:0 14px;min-height:46px}
+    .m-form input:focus{outline:none;border-color:#111}
+    .m-form button{background:#111;color:#fff;border:0;border-radius:6px;padding:0 20px;min-height:46px;font:500 14px "Geist",sans-serif;cursor:pointer;transition:background .2s,transform .1s}
+    .m-form button:hover{background:#333}.m-form button:active{transform:scale(.98)}
+    .m-hint{padding:0 18px 16px;font-size:13px;color:#787774}
+    kbd{font:12px "Geist Mono",monospace;border:1px solid #EAEAEA;border-radius:4px;background:#F7F6F3;padding:2px 6px}
+    .m-bento{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:12px}
+    .m-card{background:#fff;border:1px solid #EAEAEA;border-radius:12px;padding:24px;transition:box-shadow .2s;
+      opacity:0;transform:translateY(12px)}
+    .m-card.in{opacity:1;transform:none;transition:opacity .6s cubic-bezier(.16,1,.3,1) calc(var(--i)*80ms),transform .6s cubic-bezier(.16,1,.3,1) calc(var(--i)*80ms),box-shadow .2s}
+    .m-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.04)}
+    .m-a{grid-column:span 4}.m-b{grid-column:span 2}.m-c{grid-column:span 6}
+    .m-card h2{font:500 12px "Geist Mono",monospace;color:#787774;text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .m-card .big{font-family:"Newsreader",serif;font-size:28px;color:#111;letter-spacing:-.02em;line-height:1.1}
+    .m-card p{font-size:14px;line-height:1.6;margin-top:6px}
+    .m-card .mono{font-family:"Geist Mono",monospace;font-size:13px}
+    .tag{border-radius:9999px;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px}
+    .t-g{background:#EDF3EC;color:#346538}.t-b{background:#E1F3FE;color:#1F6C9F}.t-y{background:#FBF3DB;color:#956400}
+    @media(max-width:640px){.m-a,.m-b,.m-c{grid-column:span 6}}
+    @media(prefers-reduced-motion:reduce){.m-glow{animation:none}.m-card{opacity:1;transform:none}}
+    #v4 .skills-footer{border-color:#EAEAEA;color:#787774;background:#F7F6F3}
+    #v4 .skill{border-color:#EAEAEA;background:#fff;border-radius:9999px;padding:2px 9px}
+    #v4 .skill.on{background:#111;color:#fff;border-color:#111}
+  </style>
+</head>
+<body>
+
+  <div class="meta-nav">
+    <button class="meta-btn active" onclick="switchVersion('v1')">v1: /design</button>
+    <button class="meta-btn active2" onclick="switchVersion('v2')">v2: taste+Warp</button>
+    <button class="meta-btn active3" onclick="switchVersion('v3')">v3: Brutalist</button>
+    <button class="meta-btn active4" onclick="switchVersion('v4')">v4: Minimalist</button>
+  </div>
+
+  <!-- V1: claude-mastery /design -->
+  <div id="v1" class="content active">
+    <div class="main-wrap">
+      <header>
+        <div class="mark">▶◀ TRACER v1</div>
+      </header>
+      <div class="input-group">
+        <input type="text" placeholder="domaine.com / 1.2.3.4">
+        <button>SCAN</button>
+      </div>
+      <div class="results">
+        <div class="panel">
+          <div class="panel-header">DNS</div>
+          <div class="panel-body">{ A: 93.184.216.34, TTL: 3600, Status: ✓ }</div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">RDAP</div>
+          <div class="panel-body">{ registrar: ARIN, status: active, geo: US }</div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">CERTS</div>
+          <div class="panel-body">{ issuer: Let's Encrypt, expires: 2025-01-15 }</div>
+        </div>
+      </div>
+      <div class="skills-footer">
+        <span class="skill on">claude-mastery /design</span>
+        <span class="skill on">claude-mastery /cadre</span>
+        <span class="skill on">claude-mastery /planifie</span>
+        <span class="skill">awesome-design-md</span>
+        <span class="skill">playwright-cli</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- V2: taste-skill + Warp -->
+  <div id="v2" class="content">
+    <div class="main-wrap">
+      <header>
+        <div class="mark">▶◀ Tracer v2</div>
+      </header>
+      <div class="input-group">
+        <input type="text" placeholder="domaine.com, 1.2.3.4, ou email@domain.com">
+        <button>Analyser</button>
+      </div>
+      <div class="results">
+        <div class="panel">
+          <div class="panel-header"><span style="color:#4ade80">✓</span> DNS</div>
+          <div class="panel-body">A: 93.184.216.34
+TTL: 3600
+Status: OK</div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span style="color:#4ade80">✓</span> RDAP</div>
+          <div class="panel-body">Registrar: ARIN
+Status: Active
+Geo: United States</div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span style="color:#4ade80">✓</span> Certificats</div>
+          <div class="panel-body">Issuer: Let's Encrypt
+Expires: 2025-01-15
+Common Name: example.com</div>
+        </div>
+      </div>
+      <div class="skills-footer">
+        <span class="skill on">taste-skill</span>
+        <span class="skill on">awesome-design-md (Warp)</span>
+        <span class="skill on">claude-mastery /design</span>
+        <span class="skill on">playwright-cli</span>
+        <span class="skill">claude-mastery /interroge</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- V3 : brutalist-skill (Tactical Telemetry) -->
+  <div id="v3" class="content">
+    <div class="main-wrap" style="overflow-y:auto">
+      <div class="b-top b-micro"><span>[ TRACER ] UNIT / OS-01</span><span class="red">REV 2.6 ®</span></div>
+      <section class="b-hero">
+        <h1>Trace<br><s>le</s> bruit.</h1>
+        <p class="b-micro">&gt;&gt;&gt; DOMAINE / IP / EMAIL — SOURCES PUBLIQUES — 0 CLÉ API</p>
+      </section>
+      <form class="b-form" onsubmit="return false"><input placeholder="EXAMPLE.COM" aria-label="Cible"><button>SCAN &gt;</button></form>
+      <div class="b-grid b-micro">
+        <div class="b-cell"><h2>[ DNS / A ]</h2><dl><dt>ADDR</dt><dd><data>93.184.216.34</data></dd><dt>TTL</dt><dd>3600</dd><dt>ÉTAT</dt><dd class="b-live">● RÉSOLU</dd></dl></div>
+        <div class="b-cell"><h2>[ RDAP ]</h2><dl><dt>REG</dt><dd>ARIN</dd><dt>GEO</dt><dd>US</dd><dt>STATUT</dt><dd>ACTIF</dd></dl></div>
+        <div class="b-cell"><h2>[ CERTS ]</h2><dl><dt>ÉMET.</dt><dd>LET'S ENCRYPT</dd><dt>EXP.</dt><dd>2025-01-15</dd><dt>CN</dt><dd>EXAMPLE.COM</dd></dl></div>
+      </div>
+      <div class="b-bar" style="margin-top:14px"></div>
+      <p class="b-micro" style="padding:6px 14px 14px;color:#777">/// HISTORIQUE LOCAL 200 — LOT 25 CIBLES — EXPORT JSON/CSV</p>
+      <div class="skills-footer">
+        <span class="skill on">brutalist-skill</span>
+        <span class="skill on">taste-skill</span>
+        <span class="skill">playwright-cli</span>
+        <span class="skill">awesome-design-md</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- V4 : minimalist-skill (éditorial) -->
+  <div id="v4" class="content">
+    <div class="main-wrap" style="overflow-y:auto">
+      <div class="m-glow"></div>
+      <div class="m-wrap">
+        <div class="m-meta">Tracer / console OSINT</div>
+        <h1>Tout ce qu'un domaine révèle, sur une seule page.</h1>
+        <p class="m-lead">DNS, registre, certificats et géolocalisation d'IP, depuis des sources publiques. Rien à configurer.</p>
+        <div class="m-win">
+          <div class="m-chrome"><i></i><i></i><i></i></div>
+          <form class="m-form" onsubmit="return false"><input placeholder="example.com" aria-label="Cible"><button>Analyser</button></form>
+          <div class="m-hint">Raccourci <kbd>⌘</kbd> <kbd>K</kbd> pour saisir une cible</div>
+        </div>
+        <div class="m-bento">
+          <div class="m-card m-a" style="--i:0"><h2>DNS <span class="tag t-g">Résolu</span></h2><div class="big">93.184.216.34</div><p class="mono">A · TTL 3600</p></div>
+          <div class="m-card m-b" style="--i:1"><h2>Registre <span class="tag t-b">Actif</span></h2><div class="big">ARIN</div><p>États-Unis</p></div>
+          <div class="m-card m-c" style="--i:2"><h2>Certificat <span class="tag t-y">Expire bientôt</span></h2><p class="mono">Let's Encrypt · example.com · 15 janv. 2025</p></div>
+        </div>
+      </div>
+      <div class="skills-footer">
+        <span class="skill on">minimalist-skill</span>
+        <span class="skill on">taste-skill</span>
+        <span class="skill">playwright-cli</span>
+        <span class="skill">awesome-design-md</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchVersion(v) {
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.meta-btn').forEach(b => {
+        b.classList.remove('active', 'active2', 'active3', 'active4');
+      });
+      document.getElementById(v).classList.add('active');
+
+      const btn = event.target;
+      if (v === 'v1') btn.classList.add('active');
+      if (v === 'v2') btn.classList.add('active2');
+      if (v === 'v3') btn.classList.add('active3');
+      if (v === 'v4') btn.classList.add('active4');
+    }
+
+    // minimalist-skill : apparition au scroll via IntersectionObserver
+    const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}));
+    document.querySelectorAll('.m-card').forEach(c=>io.observe(c));
+  </script>
+
+</body>
+</html>
