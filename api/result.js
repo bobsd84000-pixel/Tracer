@@ -7,8 +7,8 @@ module.exports = async (req, res) => {
   }
 
   const { reportId } = req.query;
-  if (!reportId) {
-    return res.status(400).json({ error: 'reportId required' });
+  if (typeof reportId !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(reportId)) {
+    return res.status(400).json({ error: 'valid reportId required' });
   }
 
   try {
