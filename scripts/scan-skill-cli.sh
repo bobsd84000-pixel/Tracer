@@ -241,11 +241,11 @@ interactive_mode() {
     case $choice in
       1)
         USE_LLM=false
-        run_scan
+        run_scan || true
         ;;
       2)
         USE_LLM=true
-        run_scan
+        run_scan || true
         ;;
       3)
         select_format
