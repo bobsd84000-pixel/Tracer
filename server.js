@@ -26,11 +26,14 @@ http.createServer((req, res) => {
 
   if (url.pathname === '/api/scan') {
     let raw = '';
+    let tooLarge = false;
     req.on('data', (chunk) => {
+      if (tooLarge) return;
       raw += chunk;
-      if (raw.length > MAX_BODY) req.destroy();
+      if (raw.length > MAX_BODY) { tooLarge = true; raw = ''; }
     });
     req.on('end', () => {
+      if (tooLarge) return res.status(413).json({ error: 'Body too large' });
       try {
         req.body = raw ? JSON.parse(raw) : {};
       } catch {

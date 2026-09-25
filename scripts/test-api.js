@@ -1,7 +1,10 @@
 const assert = require('assert');
 const fs = require('fs');
+const http = require('http');
+const net = require('net');
 const os = require('os');
 const path = require('path');
+const { spawn } = require('child_process');
 const scan = require('../api/scan');
 const result = require('../api/result');
 
@@ -14,6 +17,38 @@ const call = (fn, req) => new Promise((resolve) => {
 });
 
 const post = (body) => call(scan, { method: 'POST', body });
+
+const freePort = () => new Promise((resolve, reject) => {
+  const s = net.createServer().on('error', reject).listen(0, () => {
+    const { port } = s.address();
+    s.close(() => resolve(port));
+  });
+});
+
+const startServer = (port) => new Promise((resolve, reject) => {
+  const child = spawn(process.execPath, [path.join(__dirname, '..', 'server.js')], {
+    env: { ...process.env, PORT: String(port) }, stdio: ['ignore', 'pipe', 'inherit'],
+  });
+  const timer = setTimeout(() => { child.kill(); reject(new Error('server start timeout')); }, 5000);
+  child.on('exit', (code) => { clearTimeout(timer); reject(new Error(`server exited ${code}`)); });
+  child.stdout.on('data', (d) => {
+    if (String(d).includes(`http://localhost:${port}`)) { clearTimeout(timer); resolve(child); }
+  });
+});
+
+const rawPost = (port, payload) => new Promise((resolve, reject) => {
+  const r = http.request({
+    host: '127.0.0.1', port, path: '/api/scan', method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+  }, (res) => {
+    let data = '';
+    res.on('data', (c) => { data += c; });
+    res.on('end', () => resolve({ code: res.statusCode, body: JSON.parse(data) }));
+  });
+  r.setTimeout(5000, () => r.destroy(new Error('request timeout')));
+  r.on('error', reject);
+  r.end(payload);
+});
 
 (async () => {
   assert.strictEqual((await post({ skillPath: '/etc' })).code, 400);
@@ -37,6 +72,16 @@ const post = (body) => call(scan, { method: 'POST', body });
     if (SCAN_TIMEOUT_MS === undefined) delete process.env.SCAN_TIMEOUT_MS;
     else process.env.SCAN_TIMEOUT_MS = SCAN_TIMEOUT_MS;
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+
+  const port = await freePort();
+  const child = await startServer(port);
+  try {
+    const r = await rawPost(port, JSON.stringify({ skillPath: 'x'.repeat(20 * 1024) }));
+    assert.strictEqual(r.code, 413);
+    assert.deepStrictEqual(r.body, { error: 'Body too large' });
+  } finally {
+    child.kill();
   }
   console.log('OK : tous les tests API passent');
 })().catch((err) => {
