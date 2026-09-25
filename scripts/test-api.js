@@ -6,7 +6,6 @@ const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 const scan = require('../api/scan');
-const result = require('../api/result');
 
 const call = (fn, req) => new Promise((resolve) => {
   const res = {
@@ -56,8 +55,6 @@ const rawPost = (port, payload) => new Promise((resolve, reject) => {
   assert.strictEqual((await post({ skillPath: 'https://evil.com/a/b' })).code, 400);
   assert.strictEqual((await post({ skillPath: 'https://github.com/a/b', format: 'x' })).code, 400);
   assert.strictEqual((await call(scan, { method: 'GET' })).code, 405);
-  assert.strictEqual((await call(result, { method: 'GET', query: { reportId: '../../etc/x' } })).code, 400);
-  assert.strictEqual((await call(result, { method: 'GET', query: { reportId: 'absent' } })).code, 404);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-skillspector-'));
   fs.writeFileSync(path.join(dir, 'skillspector'), '#!/bin/sh\nexec sleep 5\n', { mode: 0o755 });
   const { PATH, SCAN_TIMEOUT_MS } = process.env;

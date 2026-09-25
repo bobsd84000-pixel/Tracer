@@ -2,7 +2,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const scan = require('./api/scan');
-const result = require('./api/result');
 
 const PORT = process.env.PORT || 3000;
 const INDEX = path.join(__dirname, 'public', 'index.html');
@@ -21,8 +20,6 @@ http.createServer((req, res) => {
   wrap(res);
   const url = new URL(req.url, 'http://localhost');
   req.query = Object.fromEntries(url.searchParams);
-
-  if (url.pathname === '/api/result') return result(req, res);
 
   if (url.pathname === '/api/scan') {
     let raw = '';
