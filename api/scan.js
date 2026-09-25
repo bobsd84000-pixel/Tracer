@@ -24,8 +24,14 @@ module.exports = async (req, res) => {
   const reply = (status, body) => {
     if (done) return;
     done = true;
+    clearTimeout(timer);
     res.status(status).json(body);
   };
+
+  const timer = setTimeout(() => {
+    skillspector.kill('SIGKILL');
+    reply(504, { success: false, error: 'Scan timed out' });
+  }, Number(process.env.SCAN_TIMEOUT_MS) || 120000);
 
   skillspector.stdout.on('data', (data) => {
     output += data.toString();
