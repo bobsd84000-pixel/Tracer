@@ -1,0 +1,92 @@
+{
+  "api/result.js": {
+    "mtime": 1792614219.529925,
+    "seen": 1792614256.0182955,
+    "ast_hash": "884d080fd1f1ea8c1a6da3363b3d04b1",
+    "semantic_hash": ""
+  },
+  "api/scan.js": {
+    "mtime": 1792614219.530112,
+    "seen": 1792614256.0183027,
+    "ast_hash": "9a94a693506f86a3d088b97250997ab1",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1792614219.530112,
+    "seen": 1792614256.018306,
+    "ast_hash": "076f921a7185e14637e98f67fda434cc",
+    "semantic_hash": ""
+  },
+  "scripts/scan-skill-cli.sh": {
+    "mtime": 1792614219.530112,
+    "seen": 1792614256.0183089,
+    "ast_hash": "a6892910f4a83c13e677e4ad2942a851",
+    "semantic_hash": ""
+  },
+  "scripts/scan-skills.sh": {
+    "mtime": 1792614219.530338,
+    "seen": 1792614256.0183156,
+    "ast_hash": "35915d243abb554aefc6eeaf4ca4e2d6",
+    "semantic_hash": ""
+  },
+  "scripts/scan_api.py": {
+    "mtime": 1792614219.530338,
+    "seen": 1792614256.018318,
+    "ast_hash": "0dd31bd83cc5d303f6491d599b40bca3",
+    "semantic_hash": ""
+  },
+  "scripts/test-api.js": {
+    "mtime": 1792614219.530338,
+    "seen": 1792614256.0183196,
+    "ast_hash": "40d1ecd3203db791840eb3fcb31eb948",
+    "semantic_hash": ""
+  },
+  "server.js": {
+    "mtime": 1792614219.530338,
+    "seen": 1792614256.0183215,
+    "ast_hash": "14ad72746d485f32f134a059f81cc128",
+    "semantic_hash": ""
+  },
+  "vercel.json": {
+    "mtime": 1792614219.5305085,
+    "seen": 1792614256.0183227,
+    "ast_hash": "14fb63ff00038fde7a1599d79bbc53fa",
+    "semantic_hash": ""
+  },
+  ".github/workflows/scan-api.yml": {
+    "mtime": 1792614219.5298154,
+    "seen": 1792614256.0183241,
+    "ast_hash": "4d51b39a0343f0aee94a393d915499f1",
+    "semantic_hash": ""
+  },
+  ".github/workflows/skillspector.yml": {
+    "mtime": 1792614219.529925,
+    "seen": 1792614256.018326,
+    "ast_hash": "19d62b2743f7c3ef5e761160b9a9222a",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1792614219.529925,
+    "seen": 1792614256.018328,
+    "ast_hash": "9882d93f8337b16e844c43981b67d0f0",
+    "semantic_hash": ""
+  },
+  "public/index.html": {
+    "mtime": 1792614219.530112,
+    "seen": 1792614256.0183294,
+    "ast_hash": "ef6d293f5bc65122c35f18a0af6ec6ea",
+    "semantic_hash": ""
+  },
+  "skills/README.md": {
+    "mtime": 1792614219.530338,
+    "seen": 1792614256.0183308,
+    "ast_hash": "efe8f9b80d008f3031dadf9ffa1c6c3a",
+    "semantic_hash": ""
+  },
+  "skills/markdown-formatter/SKILL.md": {
+    "mtime": 1792614219.5305085,
+    "seen": 1792614256.0183325,
+    "ast_hash": "dd28c8d0abfa54293d0096689bb79cc6",
+    "semantic_hash": ""
+  }
+}
