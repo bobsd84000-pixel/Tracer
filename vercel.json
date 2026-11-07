@@ -1,4 +1,9 @@
 {
   "buildCommand": "echo 'Static build'",
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "functions": {
+    "api/pseudo.js": {
+      "maxDuration": 60
+    }
+  }
 }
