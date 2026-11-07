@@ -302,19 +302,42 @@
       font-size: 0.85rem;
       margin-top: 0.5rem;
     }
+
+    .compte {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+
+    .compte span:last-child {
+      color: #aaaaaa;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .compte:hover span:first-child {
+      color: var(--signal);
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <h1>⚡ Tracer</h1>
-      <p>OSINT Console — Domaine | Email | IP</p>
+      <p>OSINT Console — Domaine | Email | IP | Pseudo</p>
     </div>
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="console">Console</button>
       <button class="tab-btn" data-tab="history">Historique</button>
       <button class="tab-btn" data-tab="batch">Lot</button>
+      <button class="tab-btn" data-tab="pseudo">Pseudo</button>
     </div>
 
     <div class="content active" id="console">
@@ -340,6 +363,14 @@
         <button id="batch-export-btn" style="flex: 1;">Exporter CSV</button>
       </div>
       <div id="batch-results"></div>
+    </div>
+
+    <div class="content" id="pseudo">
+      <div class="input-group">
+        <input type="text" id="pseudo-input" placeholder="@pseudo" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button id="pseudo-btn">Chercher</button>
+      </div>
+      <div id="pseudo-results"></div>
     </div>
   </div>
 
@@ -676,6 +707,76 @@
 
     document.getElementById('batch-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && e.ctrlKey) document.getElementById('batch-analyze-btn').click();
+    });
+
+    // Module pseudo (logique Sherlock, côté serveur : /api/pseudo)
+    async function chercherPseudo() {
+      const pseudo = document.getElementById('pseudo-input').value.trim().replace(/^@/, '');
+      if (!pseudo) return;
+
+      const btn = document.getElementById('pseudo-btn');
+      const zone = document.getElementById('pseudo-results');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading">Recherche...</span>';
+      zone.innerHTML = '<div class="loading">Vérification de ~470 sites (jusqu\'à 1 min)...</div>';
+
+      let data;
+      try {
+        const resp = await withTimeout(fetch(`/api/pseudo?u=${encodeURIComponent(pseudo)}`), 65000);
+        data = await resp.json();
+      } catch (e) {
+        data = { erreur: e.message };
+      }
+
+      zone.innerHTML = '';
+      const bloc = document.createElement('div');
+      bloc.className = `result ${data.erreur ? 'error' : 'success'}`;
+      bloc.style.maxHeight = 'none';
+
+      const header = document.createElement('div');
+      header.className = 'result-header';
+      const titre = document.createElement('span');
+      titre.className = 'result-title';
+      titre.textContent = '@' + pseudo;
+      const statut = document.createElement('span');
+      statut.className = 'result-status';
+      statut.textContent = data.erreur
+        ? '✗ ' + data.erreur
+        : `${data.trouves.length} trouvé(s) / ${data.verifies} sites${data.partiel ? ' (partiel)' : ''}`;
+      header.append(titre, statut);
+      bloc.appendChild(header);
+
+      (data.trouves || []).forEach((c) => {
+        const a = document.createElement('a');
+        a.className = 'compte';
+        a.href = c.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        const nom = document.createElement('span');
+        nom.textContent = c.site;
+        const lien = document.createElement('span');
+        lien.textContent = c.url.replace(/^https?:\/\//, '');
+        a.append(nom, lien);
+        bloc.appendChild(a);
+      });
+
+      if (!data.erreur) {
+        const note = document.createElement('div');
+        note.className = 'result-status';
+        note.style.marginTop = '0.75rem';
+        note.textContent = `${data.erreurs} site(s) sans réponse. Un résultat peut être un homonyme : vérifier chaque lien.`;
+        bloc.appendChild(note);
+        saveToHistory({ query: '@' + pseudo, timestamp: new Date().toISOString(), data: { pseudo: data } });
+      }
+
+      zone.appendChild(bloc);
+      btn.disabled = false;
+      btn.innerHTML = 'Chercher';
+    }
+
+    document.getElementById('pseudo-btn').addEventListener('click', chercherPseudo);
+    document.getElementById('pseudo-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') chercherPseudo();
     });
   </script>
 </body>
